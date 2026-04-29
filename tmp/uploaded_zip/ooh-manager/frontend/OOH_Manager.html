@@ -36,7 +36,11 @@
 <script type="text/babel">
 const { useState, useEffect, useCallback } = React;
 
-const API = 'http://localhost:3001/api';
+const API = (window.location.protocol === 'file:') 
+  ? 'http://localhost:3001/api'
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3001/api'
+    : window.location.origin + '/api';
 const C = {
   bg:'#f5f6fa', surface:'#ffffff', card:'#ffffff', border:'#e8eaf0',
   accent:'#0a1172', accentLight:'#1a237e', accentSoft:'#eef0ff',
