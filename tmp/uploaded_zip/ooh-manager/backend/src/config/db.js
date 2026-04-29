@@ -1,18 +1,16 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
-const isCloud = process.env.DB_HOST && process.env.DB_HOST.includes("supabase");
-
 const pool = new Pool({
-  host:     process.env.DB_HOST     || "localhost",
+  host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME     || "ooh_manager",
-  user:     process.env.DB_USER     || "postgres",
-  password: process.env.DB_PASSWORD || "",
-  max: 10,
+  database: process.env.DB_NAME || "postgres",
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  max: 5,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  ssl: isCloud ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 15000,
+  ssl: { rejectUnauthorized: false },
 });
 
 pool.on("error", (err) => {
