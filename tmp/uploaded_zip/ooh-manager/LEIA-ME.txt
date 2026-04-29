@@ -1,0 +1,90 @@
+╔══════════════════════════════════════════════════════════════╗
+║           OOH Manager — Guia de Instalação Windows           ║
+╚══════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 1 — Instale o PostgreSQL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Acesse: https://www.postgresql.org/download/windows/
+2. Baixe o PostgreSQL 16 para Windows
+3. Execute o instalador
+4. IMPORTANTE: quando pedir a senha do postgres, coloque:
+   ooh_manager_2025
+5. Mantenha a porta padrão: 5432
+6. Finalize a instalação
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 2 — Instale o Node.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Acesse: https://nodejs.org
+2. Baixe a versão LTS (recomendada)
+3. Execute o instalador com as opções padrão
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 3 — Execute o instalador
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Clique com o botão DIREITO em INSTALAR.bat
+2. Selecione "Executar como administrador"
+3. Aguarde a instalação completar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 4 — Inicie o sistema
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Clique duas vezes em INICIAR.bat
+2. Aguarde o servidor iniciar (janela preta)
+3. Abra o arquivo: frontend\OOH_Manager.html
+   (arraste para o navegador ou clique duas vezes)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LOGIN INICIAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Email: admin@oohmanager.com
+  Senha: admin123
+
+  ⚠ Troque a senha após o primeiro acesso!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ARQUIVOS DO PROJETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  INSTALAR.bat          → Instala o sistema (executar 1x)
+  INICIAR.bat           → Inicia o servidor backend
+  PARAR.bat             → Para o servidor
+  frontend\
+    OOH_Manager.html    → Interface do sistema (abrir no navegador)
+  backend\              → Código do servidor API
+  database\
+    schema.sql          → Estrutura do banco de dados
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  COMO USAR NO DIA A DIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Execute INICIAR.bat (deixe a janela aberta)
+  2. Abra o arquivo OOH_Manager.html no navegador
+  3. Quando terminar, execute PARAR.bat
+     ou feche a janela do backend
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PROBLEMAS COMUNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  "Não conecta ao servidor"
+  → Certifique-se que INICIAR.bat está rodando
+
+  "Erro de banco de dados"
+  → Verifique se o PostgreSQL está instalado
+    e se a senha é ooh_manager_2025
+
+  "node não reconhecido"
+  → Reinstale o Node.js e reinicie o Windows
+
+  "Erro ao instalar dependências"
+  → Verifique sua conexão com a internet
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
