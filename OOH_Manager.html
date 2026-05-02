@@ -50,7 +50,7 @@ const C = {
 };
 const SC = {
   Lead:'#7b2fbe','Em negociacao':'#f5690a','Em negociação':'#f5690a',Fechado:'#16a34a',Perdido:'#dc2626',
-  Rascunho:'#64748b',Enviada:'#7b2fbe',Aprovada:'#16a34a',Reprovada:'#dc2626',
+  Rascunho:'#64748b',Enviada:'#7b2fbe',Aprovada:'#16a34a',Reprovada:'#dc2626',Cancelada:'#6b7280',
   Pendente:'#f5690a','Em producao':'#0a1172','Em produção':'#0a1172',Finalizado:'#16a34a',
   Pago:'#16a34a',Atrasado:'#dc2626',Ativo:'#16a34a'
 };
@@ -60,11 +60,15 @@ function useApi() {
   const token = localStorage.getItem('ooh_token');
   const headers = { 'Content-Type':'application/json', ...(token ? { Authorization:'Bearer '+token } : {}) };
 
-  const get  = (url) => fetch(API+url,{headers}).then(r=>r.json());
+  const handle401 = (r) => {
+    if (r.status === 401) { localStorage.removeItem('ooh_token'); window.location.reload(); }
+    return r.json();
+  };
+  const get  = (url) => fetch(API+url,{headers}).then(handle401);
   const post = (url,body) => fetch(API+url,{method:'POST',headers,body:JSON.stringify(body)}).then(r=>r.json());
   const put  = (url,body) => fetch(API+url,{method:'PUT',headers,body:JSON.stringify(body)}).then(r=>r.json());
   const del  = (url) => fetch(API+url,{method:'DELETE',headers}).then(r=>r.json());
-  return { get, post, put, del };
+  return { get, post, put, del, delete: del };
 }
 
 // ── Estilos utilitários ──────────────────────────────────────
@@ -823,6 +827,25 @@ function Propostas() {
     alert('Preço atualizado!');
   }
 
+  async function cancelarProposta(id) {
+    if (!window.confirm('Cancelar esta proposta? O PI e cobranças gerados precisarão ser cancelados manualmente.')) return;
+    try {
+      var res = await api.put('/propostas/'+id+'/status', { status: 'Cancelada' });
+      if (res.erro) { alert('Erro: ' + res.erro); return; }
+      load();
+      alert('Proposta cancelada. Verifique o PI e cobranças associados.');
+    } catch(e) { alert('Erro: ' + e.message); }
+  }
+
+  async function excluirProposta(id) {
+    if (!window.confirm('Excluir permanentemente esta proposta? Esta ação não pode ser desfeita.')) return;
+    try {
+      var res = await api.delete('/propostas/'+id);
+      if (res && res.erro) { alert('Erro: ' + res.erro); return; }
+      load();
+    } catch(e) { alert('Erro: ' + e.message); }
+  }
+
   async function mudarStatus(id, status) {
     try { await api.put('/propostas/'+id+'/status', { status }); load(); }
     catch(e) { alert('Erro: ' + e.message); }
@@ -845,7 +868,8 @@ function Propostas() {
 
   function gerarPDFProposta(proposta) {
     var cliente = clientes.find(function(c){ return c.id===proposta.cliente_id; }) || {};
-    var midias = proposta.midias || [];
+    var midiasRaw = proposta.midias || [];
+    var midias = typeof midiasRaw === 'string' ? (function(){ try{ return JSON.parse(midiasRaw); } catch(e){ return []; } })() : (Array.isArray(midiasRaw) ? midiasRaw : []);
     var dataHora = new Date().toLocaleString('pt-BR');
     var periodoInicio = proposta.periodo_inicio ? new Date(proposta.periodo_inicio).toLocaleDateString('pt-BR') : '—';
     var periodoFim    = proposta.periodo_fim    ? new Date(proposta.periodo_fim).toLocaleDateString('pt-BR')    : '—';
@@ -1217,6 +1241,8 @@ function Propostas() {
                       {(p.status==='Enviada'||p.status==='Rascunho') && <Btn onClick={function(){ aprovar(p.id); }} style={{fontSize:10,padding:'3px 8px'}}>✓ Aprovar</Btn>}
                       {p.status==='Enviada' && <Btn onClick={function(){ mudarStatus(p.id,'Reprovada'); }} style={{fontSize:10,padding:'3px 8px',background:C.danger}}>Reprovar</Btn>}
                       {p.status==='Aprovada' && <Btn onClick={function(){ gerarPDFFinanceiro(p, null, clientes.find(function(c){ return c.id===p.cliente_id; })); }} style={{fontSize:10,padding:'3px 8px',background:'#e63946'}}>Doc Fin.</Btn>}
+                      {p.status==='Aprovada' && <Btn onClick={function(){ cancelarProposta(p.id); }} style={{fontSize:10,padding:'3px 8px',background:'#6b7280'}}>Cancelar</Btn>}
+                      {(p.status==='Reprovada'||p.status==='Cancelada') && <Btn onClick={function(){ excluirProposta(p.id); }} style={{fontSize:10,padding:'3px 8px',background:C.danger}}>Excluir</Btn>}
                     </div>
                   </td>
                 </tr>
