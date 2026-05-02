@@ -657,7 +657,6 @@ function CRM() {
   );
 }
 
-
 function Propostas() {
   const api = useApi();
   const [propostas, setPropostas] = useState([]);
@@ -1059,8 +1058,8 @@ function Propostas() {
                     <td style={{...s.td,fontSize:11,color:C.muted}}>{p.unidade}</td>
                     {editandoPreco === p.id ? (
                       <>
-                        <td style={s.td}><input style={{...s.input,width:130}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
-                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_multi)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_multi:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:130}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))}/></td>
+                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_multi)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_multi:e.target.value}}))}/></td>
                         <td style={s.td}>
                           <Btn onClick={()=>salvarPreco(p.id)} style={{fontSize:11,padding:'4px 10px',marginRight:4}}>Salvar</Btn>
                           <Btn variant="ghost" onClick={()=>setEditandoPreco(null)} style={{fontSize:11,padding:'4px 10px'}}>Cancelar</Btn>
@@ -1093,8 +1092,8 @@ function Propostas() {
                     <td style={{...s.td,fontSize:11,color:C.muted}}>{p.unidade}</td>
                     {editandoPreco === p.id ? (
                       <>
-                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
-                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_6h)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_6h:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))}/></td>
+                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_6h)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_6h:e.target.value}}))}/></td>
                         <td style={s.td}>
                           <Btn onClick={()=>salvarPreco(p.id)} style={{fontSize:11,padding:'4px 10px',marginRight:4}}>Salvar</Btn>
                           <Btn variant="ghost" onClick={()=>setEditandoPreco(null)} style={{fontSize:11,padding:'4px 10px'}}>Cancelar</Btn>
