@@ -70,8 +70,3 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason) => {
   console.error('[PROMISE REJEITADA]', reason);
 });
-const precosRoutes = require("./routes/precos");
-// ...
-app.use("/api/precos", precosRoutes);const precosRoutes = require("./routes/precos");
-// ...
-app.use("/api/precos", precosRoutes);
