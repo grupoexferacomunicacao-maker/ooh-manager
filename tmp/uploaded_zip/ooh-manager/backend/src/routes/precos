@@ -14,11 +14,11 @@ router.get("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const { preco_1, preco_2_6, preco_7mais, desconto_multi, desconto_6h, unidade } = req.body;
-  const id = req.params.id;
   try {
+    const pid = String(req.params["id"]);
     const { rows } = await query(
       "UPDATE tabela_precos SET preco_1=$1, preco_2_6=$2, preco_7mais=$3, desconto_multi=$4, desconto_6h=$5, unidade=$6, atualizado_em=NOW() WHERE id=$7 RETURNING *",
-      [preco_1, preco_2_6, preco_7mais, desconto_multi, desconto_6h, unidade, id]
+      [preco_1, preco_2_6, preco_7mais, desconto_multi, desconto_6h, unidade, pid]
     );
     if (!rows[0]) return res.status(404).json({ erro: "Preco nao encontrado" });
     res.json(rows[0]);
