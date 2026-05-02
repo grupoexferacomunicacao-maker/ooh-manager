@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { query } = require("../config/db");
 const { authMiddleware } = require("../middleware/auth");
 router.use(authMiddleware);
-
+ 
 // POST /api/producao — criar ordem manualmente
 router.post("/", async (req, res) => {
   const { pi_id } = req.body;
@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
       "SELECT id FROM ordens_producao WHERE pi_id=$1 AND status != 'Cancelado'", [pi_id]
     );
     if (exists.length > 0) return res.status(400).json({ erro: "Ja existe uma ordem ativa para este PI" });
-
+ 
     const { rows } = await query(
       "INSERT INTO ordens_producao (pi_id, responsavel_id) VALUES ($1,$2) RETURNING *",
       [pi_id, req.user.id]
@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
     res.status(500).json({ erro: e.message });
   }
 });
-
+ 
 // GET /api/producao
 router.get("/", async (req, res) => {
   try {
@@ -37,7 +37,7 @@ router.get("/", async (req, res) => {
        JOIN clientes c          ON pi.cliente_id = c.id
        LEFT JOIN usuarios u     ON op.responsavel_id = u.id
        ORDER BY
-         CASE op.status WHEN 'Em producao' THEN 1 WHEN 'Pendente' THEN 2 WHEN 'Finalizado' THEN 3 ELSE 4 END,
+         CASE op.status WHEN 'Em produção' THEN 1 WHEN 'Pendente' THEN 2 WHEN 'Finalizado' THEN 3 ELSE 4 END,
          op.criado_em DESC`
     );
     // Normalizar booleanos
@@ -56,16 +56,16 @@ router.get("/", async (req, res) => {
     res.status(500).json({ erro: e.message });
   }
 });
-
+ 
 // PUT /api/producao/:id/checklist
 router.put("/:id/checklist", async (req, res) => {
   const { check_arte, check_aprovacao, check_grafica, check_promotoras, check_material_cliente, status } = req.body;
-
+ 
   // Calcular status automaticamente se nao fornecido
   const allDone = check_arte && check_aprovacao && check_grafica && check_promotoras && check_material_cliente;
   const anyDone = check_arte || check_aprovacao || check_grafica || check_promotoras || check_material_cliente;
-  const novoStatus = status || (allDone ? "Finalizado" : anyDone ? "Em producao" : "Pendente");
-
+  const novoStatus = status || (allDone ? "Finalizado" : anyDone ? "Em produção" : "Pendente");
+ 
   try {
     const { rows } = await query(
       `UPDATE ordens_producao
@@ -88,11 +88,11 @@ router.put("/:id/checklist", async (req, res) => {
     res.status(500).json({ erro: e.message });
   }
 });
-
+ 
 // PUT /api/producao/:id/status
 router.put("/:id/status", async (req, res) => {
   const { status, observacoes } = req.body;
-  const validos = ["Pendente","Em producao","Finalizado","Cancelado"];
+  const validos = ["Pendente","Em produção","Finalizado","Cancelado"];
   if (status && !validos.includes(status)) return res.status(400).json({ erro: "Status invalido" });
   try {
     const sets = [];
@@ -111,5 +111,5 @@ router.put("/:id/status", async (req, res) => {
     res.status(500).json({ erro: e.message });
   }
 });
-
+ 
 module.exports = router;
