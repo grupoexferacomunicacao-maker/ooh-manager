@@ -25,7 +25,7 @@ router.put("/:id", async (req, res) => {
            desconto_multi=$4, desconto_6h=$5, unidade=$6,
            atualizado_em=NOW()
        WHERE id=$7 RETURNING *`,
-      [preco_1, preco_2_6, preco_7mais, desconto_multi, desconto_6h, unidade, req.params.id]
+     [preco_1, preco_2_6, preco_7mais, desconto_multi, desconto_6h, unidade, req.params.id]
     );
     if (!rows[0]) return res.status(404).json({ erro: "Preço não encontrado" });
     res.json(rows[0]);
