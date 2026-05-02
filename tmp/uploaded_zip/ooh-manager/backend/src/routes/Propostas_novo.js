@@ -1,9 +1,3 @@
-// ============================================================
-// SUBSTITUIR A FUNÇÃO Propostas() INTEIRA NO OOH_Manager.html
-// Localizar: "function Propostas()" e substituir todo o bloco
-// até o próximo "function PI()"
-// ============================================================
-
 function Propostas() {
   const api = useApi();
   const [propostas, setPropostas] = useState([]);
