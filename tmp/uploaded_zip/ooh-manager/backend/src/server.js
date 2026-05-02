@@ -16,7 +16,7 @@ const dashboardRoutes = require("./routes/dashboard");
 const midiasRoutes    = require("./routes/midias");
 const alertasRoutes   = require("./routes/alertas");
 const relatoriosRoutes= require("./routes/relatorios");
-
+const precosRoutes = require("./routes/precos");
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
@@ -40,7 +40,7 @@ app.use("/api/dashboard",     dashboardRoutes);
 app.use("/api/midias",        midiasRoutes);
 app.use("/api/alertas",       alertasRoutes);
 app.use("/api/relatorios",    relatoriosRoutes);
-
+app.use("/api/precos", precosRoutes);
 // ── Servir frontend ─────────────────────────────────────────
 const frontendPath = path.join(__dirname, "../../frontend");
 app.use(express.static(frontendPath));
