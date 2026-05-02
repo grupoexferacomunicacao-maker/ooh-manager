@@ -36,11 +36,7 @@
 <script type="text/babel">
 const { useState, useEffect, useCallback } = React;
 
-const API = (window.location.protocol === 'file:') 
-  ? 'http://localhost:3001/api'
-  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3001/api'
-    : window.location.origin + '/api';
+const API = 'http://localhost:3001/api';
 const C = {
   bg:'#f5f6fa', surface:'#ffffff', card:'#ffffff', border:'#e8eaf0',
   accent:'#0a1172', accentLight:'#1a237e', accentSoft:'#eef0ff',
@@ -661,6 +657,7 @@ function CRM() {
   );
 }
 
+
 function Propostas() {
   const api = useApi();
   const [propostas, setPropostas] = useState([]);
@@ -670,38 +667,38 @@ function Propostas() {
   const [showPrecos, setShowPrecos] = useState(false);
   const [editandoPreco, setEditandoPreco] = useState(null);
   const [precosEdit, setPrecosEdit] = useState({});
- 
+
   // Form da proposta
   const [form, setForm] = useState({
     cliente_id:'', titulo:'', cnpj:'', agencia:'',
     periodo_inicio:'', periodo_fim:'', observacoes:'',
     midias_selecionadas: [] // [{midia_id, midia_nome, tipo, dias_horas_periodos, preco_unit, preco_total, unidade, editado}]
   });
- 
+
   // Mídia sendo adicionada
   const [midiaAdd, setMidiaAdd] = useState({
     precoId: '', quantidade: 1, precoCustom: ''
   });
- 
+
   const load = () => {
     api.get('/propostas').then(setPropostas).catch(()=>[]);
     api.get('/clientes').then(setClientes).catch(()=>[]);
     api.get('/precos').then(setPrecos).catch(()=>[]);
   };
   useEffect(()=>{ load(); },[]);
- 
+
   // Calcular preço de uma mídia com base na quantidade
   function calcularPreco(preco, quantidade) {
     if (!preco || !quantidade) return 0;
     const qty = parseInt(quantidade) || 1;
- 
+
     if (preco.tipo === 'diaria') {
       let precoDia = parseFloat(preco.preco_1);
       if (qty >= 7 && preco.preco_7mais)       precoDia = parseFloat(preco.preco_7mais);
       else if (qty >= 2 && preco.preco_2_6)    precoDia = parseFloat(preco.preco_2_6);
       return precoDia * qty;
     }
- 
+
     if (preco.tipo === 'pacote30') {
       const base = parseFloat(preco.preco_1);
       if (qty >= 2) {
@@ -710,7 +707,7 @@ function Propostas() {
       }
       return base * qty;
     }
- 
+
     if (preco.tipo === 'hora') {
       const baseHora = parseFloat(preco.preco_1);
       if (qty >= 6) {
@@ -719,17 +716,17 @@ function Propostas() {
       }
       return baseHora * qty;
     }
- 
+
     return 0;
   }
- 
+
   function labelQuantidade(tipo) {
     if (tipo === 'diaria')   return 'Dias';
     if (tipo === 'pacote30') return 'Períodos (30 dias cada)';
     if (tipo === 'hora')     return 'Horas';
     return 'Quantidade';
   }
- 
+
   function precoUnitLabel(preco, quantidade) {
     if (!preco) return '';
     const qty = parseInt(quantidade) || 1;
@@ -756,16 +753,16 @@ function Propostas() {
     }
     return '';
   }
- 
+
   function adicionarMidia() {
     const preco = precos.find(p => p.id === midiaAdd.precoId);
     if (!preco) return alert('Selecione uma mídia');
     const qty = parseInt(midiaAdd.quantidade) || 1;
     if (qty <= 0) return alert('Quantidade deve ser maior que zero');
- 
+
     const totalAuto = calcularPreco(preco, qty);
     const totalFinal = midiaAdd.precoCustom ? parseFloat(midiaAdd.precoCustom.replace(',','.')) : totalAuto;
- 
+
     const item = {
       midia_id:    preco.id,
       midia_nome:  preco.midia_nome,
@@ -778,21 +775,21 @@ function Propostas() {
       editado:     !!midiaAdd.precoCustom,
       label_unit:  precoUnitLabel(preco, qty),
     };
- 
+
     setForm(p => ({
       ...p,
       midias_selecionadas: [...p.midias_selecionadas, item]
     }));
     setMidiaAdd({ precoId:'', quantidade:1, precoCustom:'' });
   }
- 
+
   function removerMidia(idx) {
     setForm(p => ({
       ...p,
       midias_selecionadas: p.midias_selecionadas.filter((_,i) => i !== idx)
     }));
   }
- 
+
   function editarPrecoMidia(idx, novoValor) {
     setForm(p => {
       const arr = [...p.midias_selecionadas];
@@ -800,9 +797,9 @@ function Propostas() {
       return { ...p, midias_selecionadas: arr };
     });
   }
- 
+
   const totalProposta = form.midias_selecionadas.reduce((a,m) => a + (m.preco_total || 0), 0);
- 
+
   async function salvar() {
     if (!form.cliente_id || !form.titulo) return alert('Cliente e título obrigatórios');
     if (form.midias_selecionadas.length === 0) return alert('Adicione pelo menos uma mídia');
@@ -833,7 +830,7 @@ function Propostas() {
       load();
     } catch(e) { alert('Erro: ' + e.message); }
   }
- 
+
   // Editar tabela de preços
   async function salvarPreco(id) {
     const ed = precosEdit[id];
@@ -845,14 +842,14 @@ function Propostas() {
       alert('Preço atualizado!');
     } catch(e) { alert('Erro: ' + e.message); }
   }
- 
+
   async function mudarStatus(id, status) {
     try {
       await api.put('/propostas/'+id+'/status', { status });
       load();
     } catch(e) { alert('Erro: ' + e.message); }
   }
- 
+
   async function aprovar(id) {
     if (!window.confirm('Aprovar esta proposta? Isso gerará um PI, Produção e Cobrança automaticamente.')) return;
     try {
@@ -868,14 +865,14 @@ function Propostas() {
       }, 500);
     } catch(e) { alert('Erro: ' + e.message); }
   }
- 
+
   function gerarPDFProposta(proposta) {
     const cliente = clientes.find(c=>c.id===proposta.cliente_id) || {};
     const midias = proposta.midias || [];
     const dataHora = new Date().toLocaleString('pt-BR');
     const periodoInicio = proposta.periodo_inicio ? new Date(proposta.periodo_inicio).toLocaleDateString('pt-BR') : '—';
     const periodoFim    = proposta.periodo_fim    ? new Date(proposta.periodo_fim).toLocaleDateString('pt-BR')    : '—';
- 
+
     const linhasMidias = midias.map(function(m) {
       return '<tr>'
         + '<td style="padding:10px 12px;border-bottom:1px solid #eee;font-weight:600">' + (m.nome||m) + '</td>'
@@ -887,7 +884,7 @@ function Propostas() {
         + (m.editado ? ' <span style="font-size:10px;color:#f59e0b">(editado)</span>' : '')
         + '</td></tr>';
     }).join('');
- 
+
     const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Proposta ' + proposta.numero + '</title>'
       + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:13px;padding:40px;color:#222}'
       + '.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a237e;padding-bottom:20px;margin-bottom:28px}'
@@ -929,12 +926,12 @@ function Propostas() {
       + '<div class="footer"><span>Gerado em ' + dataHora + ' via Exfera OOH Manager</span><span>' + proposta.numero + ' | ' + proposta.titulo + '</span></div>'
       + '<script>window.onload=function(){window.print();}<\/script>'
       + '</body></html>';
- 
+
     const win = window.open('', '_blank', 'width=1000,height=750');
     win.document.write(html);
     win.document.close();
   }
- 
+
   function gerarPDFFinanceiro(proposta, pi, cliente) {
     const win = window.open('', '_blank', 'width=900,height=700');
     const piNum = pi ? pi.numero : (proposta.numero || '');
@@ -947,7 +944,7 @@ function Propostas() {
       return '<span style="background:#1a237e;color:white;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:2px">'
         + (m.nome||m) + (m.quantidade > 1 ? ' ×'+m.quantidade : '') + '</span>';
     }).join('');
- 
+
     const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Doc Financeiro</title>'
       + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:13px;padding:40px}'
       + '.header{display:flex;justify-content:space-between;border-bottom:3px solid #e63946;padding-bottom:20px;margin-bottom:24px}'
@@ -985,16 +982,16 @@ function Propostas() {
     win.document.write(html);
     win.document.close();
   }
- 
+
   const fmtR = v => 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
- 
+
   // Agrupar preços por tipo para exibição
   const precosPorTipo = {
     diaria:   precos.filter(p => p.tipo === 'diaria'),
     pacote30: precos.filter(p => p.tipo === 'pacote30'),
     hora:     precos.filter(p => p.tipo === 'hora'),
   };
- 
+
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
@@ -1006,12 +1003,12 @@ function Propostas() {
           <Btn onClick={()=>setShowForm(!showForm)}>+ Nova Proposta</Btn>
         </div>
       </div>
- 
+
       {/* TABELA DE PREÇOS EDITÁVEL */}
       {showPrecos && (
         <div style={{...s.card,marginBottom:20,borderLeft:'4px solid #7c3aed'}}>
           <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,color:'#7c3aed'}}>Tabela de Preços — Clique em Editar para alterar</h3>
- 
+
           {/* DIÁRIAS */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>Mídias Diárias (6h)</div>
@@ -1026,9 +1023,9 @@ function Propostas() {
                     <td style={{...s.td,fontSize:11,color:C.muted}}>{p.unidade}</td>
                     {editandoPreco === p.id ? (
                       <>
-                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={precosEdit[p.id]?.preco_1||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}})}/></td>
-                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={precosEdit[p.id]?.preco_2_6||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_2_6:e.target.value}})}/></td>
-                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={precosEdit[p.id]?.preco_7mais||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_7mais:e.target.value}})}/></td>
+                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}})}/></td>
+                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_2_6)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_2_6:e.target.value}})}/></td>
+                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_7mais)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_7mais:e.target.value}})}/></td>
                         <td style={s.td}>
                           <Btn onClick={()=>salvarPreco(p.id)} style={{fontSize:11,padding:'4px 10px',marginRight:4}}>Salvar</Btn>
                           <Btn variant="ghost" onClick={()=>setEditandoPreco(null)} style={{fontSize:11,padding:'4px 10px'}}>Cancelar</Btn>
@@ -1047,7 +1044,7 @@ function Propostas() {
               </tbody>
             </table>
           </div>
- 
+
           {/* PACOTE 30 DIAS */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>Pacotes 30 Dias</div>
@@ -1062,8 +1059,8 @@ function Propostas() {
                     <td style={{...s.td,fontSize:11,color:C.muted}}>{p.unidade}</td>
                     {editandoPreco === p.id ? (
                       <>
-                        <td style={s.td}><input style={{...s.input,width:130}} type="number" value={precosEdit[p.id]?.preco_1||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
-                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={precosEdit[p.id]?.desconto_multi||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_multi:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:130}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_multi)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_multi:e.target.value}}))/></td>
                         <td style={s.td}>
                           <Btn onClick={()=>salvarPreco(p.id)} style={{fontSize:11,padding:'4px 10px',marginRight:4}}>Salvar</Btn>
                           <Btn variant="ghost" onClick={()=>setEditandoPreco(null)} style={{fontSize:11,padding:'4px 10px'}}>Cancelar</Btn>
@@ -1081,7 +1078,7 @@ function Propostas() {
               </tbody>
             </table>
           </div>
- 
+
           {/* POR HORA */}
           <div>
             <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>Por Hora</div>
@@ -1096,8 +1093,8 @@ function Propostas() {
                     <td style={{...s.td,fontSize:11,color:C.muted}}>{p.unidade}</td>
                     {editandoPreco === p.id ? (
                       <>
-                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={precosEdit[p.id]?.preco_1||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
-                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={precosEdit[p.id]?.desconto_6h||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_6h:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:110}} type="number" value={((precosEdit[p.id]||{}).preco_1)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],preco_1:e.target.value}}))/></td>
+                        <td style={s.td}><input style={{...s.input,width:80}} type="number" value={((precosEdit[p.id]||{}).desconto_6h)||''} onChange={e=>setPrecosEdit(prev=>({...prev,[p.id]:{...prev[p.id],desconto_6h:e.target.value}}))/></td>
                         <td style={s.td}>
                           <Btn onClick={()=>salvarPreco(p.id)} style={{fontSize:11,padding:'4px 10px',marginRight:4}}>Salvar</Btn>
                           <Btn variant="ghost" onClick={()=>setEditandoPreco(null)} style={{fontSize:11,padding:'4px 10px'}}>Cancelar</Btn>
@@ -1117,7 +1114,7 @@ function Propostas() {
           </div>
         </div>
       )}
- 
+
       {/* FORMULÁRIO NOVA PROPOSTA */}
       {showForm && (
         <div style={{...s.card,marginBottom:20}}>
@@ -1136,7 +1133,7 @@ function Propostas() {
             <Input label="CNPJ" value={form.cnpj} onChange={v=>setForm(p=>({...p,cnpj:v}))} placeholder="00.000.000/0001-00"/>
             <Input label="Agência" value={form.agencia} onChange={v=>setForm(p=>({...p,agencia:v}))} placeholder="Nome da agência (opcional)"/>
           </div>
- 
+
           {/* ADICIONAR MÍDIAS */}
           <div style={{background:'#f8fafc',border:'1px solid '+C.border,borderRadius:12,padding:16,marginBottom:16}}>
             <div style={{fontSize:13,fontWeight:700,color:C.accent,marginBottom:12}}>Adicionar Mídia</div>
@@ -1157,7 +1154,7 @@ function Propostas() {
                 </select>
               </div>
               <div>
-                <label style={s.label}>{midiaAdd.precoId ? labelQuantidade(precos.find(p=>p.id===midiaAdd.precoId)?.tipo) : 'Quantidade'}</label>
+                <label style={s.label}>{midiaAdd.precoId ? labelQuantidade((precos.find(function(p){return p.id===midiaAdd.precoId;})||{}).tipo) : 'Quantidade'}</label>
                 <input style={s.input} type="number" min="1" value={midiaAdd.quantidade} onChange={e=>setMidiaAdd(p=>({...p,quantidade:e.target.value,precoCustom:''}))}/>
               </div>
               <div>
@@ -1166,7 +1163,7 @@ function Propostas() {
               </div>
               <Btn onClick={adicionarMidia} style={{whiteSpace:'nowrap'}}>+ Adicionar</Btn>
             </div>
- 
+
             {/* Preview do preço calculado */}
             {midiaAdd.precoId && (
               <div style={{marginTop:10,padding:'8px 12px',background:'#eff6ff',borderRadius:8,fontSize:12,color:'#1565c0'}}>
@@ -1186,7 +1183,7 @@ function Propostas() {
               </div>
             )}
           </div>
- 
+
           {/* MÍDIAS SELECIONADAS */}
           {form.midias_selecionadas.length > 0 && (
             <div style={{marginBottom:16}}>
@@ -1228,12 +1225,12 @@ function Propostas() {
               </table>
             </div>
           )}
- 
+
           <div style={{marginBottom:12}}>
             <label style={s.label}>Observações</label>
             <textarea style={{...s.input,height:64,resize:'vertical'}} value={form.observacoes} onChange={e=>setForm(p=>({...p,observacoes:e.target.value}))}/>
           </div>
- 
+
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
             <Btn onClick={salvar}>Salvar Proposta</Btn>
             <Btn variant="ghost" onClick={()=>setShowForm(false)}>Cancelar</Btn>
@@ -1241,7 +1238,7 @@ function Propostas() {
           </div>
         </div>
       )}
- 
+
       {/* LISTA DE PROPOSTAS */}
       <div style={s.card}>
         <table style={s.table}>
@@ -1282,189 +1279,6 @@ function Propostas() {
   );
 }
 
-  function gerarPDFFinanceiro(proposta, pi, cliente) {
-    const win = window.open('', '_blank', 'width=900,height=700');
-    const piNum = pi ? pi.numero : (proposta.numero || '');
-    const empresa = cliente ? (cliente.empresa || '') : (proposta.cliente_nome || '');
-    const email = cliente ? (cliente.email || '') : '';
-    const telefone = cliente ? (cliente.telefone || '') : '';
-    const contato = cliente ? (cliente.contato || '') : '';
-    const cnpj = proposta.cnpj || '';
-    const agencia = proposta.agencia || '';
-    const titulo = proposta.titulo || '';
-    const propNum = proposta.numero || '';
-    const valor = Number(proposta.valor || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-    const dataEmissao = new Date().toLocaleDateString('pt-BR');
-    const dataHora = new Date().toLocaleString('pt-BR');
-    const periodoInicio = proposta.periodo_inicio ? new Date(proposta.periodo_inicio).toLocaleDateString('pt-BR') : '—';
-    const periodoFim = proposta.periodo_fim ? new Date(proposta.periodo_fim).toLocaleDateString('pt-BR') : '—';
-    const midias = (proposta.midias || []).map(function(m){ return '<span class="mtag">' + (m.nome||m) + '</span>'; }).join('') || '<span style="color:#888">Nao informado</span>';
-    const obs = proposta.observacoes ? '<div class="section"><div class="stitle">Observacoes</div><p>' + proposta.observacoes + '</p></div>' : '';
-
-    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento Financeiro - ' + piNum + '</title>'
-      + '<style>*{margin:0;padding:0;box-sizing:border-box}'
-      + 'body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:40px}'
-      + '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;border-bottom:3px solid #e63946;padding-bottom:20px}'
-      + '.logo{font-size:24px;font-weight:900;color:#e63946;letter-spacing:2px}'
-      + '.logo span{color:#222}'
-      + '.dtitle{text-align:right}'
-      + '.dtitle h1{font-size:18px;color:#e63946}'
-      + '.dtitle p{font-size:12px;color:#666;margin-top:4px}'
-      + '.pinum{font-size:14px;font-weight:700;color:#e63946;margin-top:8px}'
-      + '.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#22c55e22;color:#16a34a;border:1px solid #16a34a44}'
-      + '.section{margin-bottom:24px}'
-      + '.stitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#e63946;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:12px}'
-      + '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}'
-      + '.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}'
-      + '.field label{font-size:10px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase}'
-      + '.field span{font-size:13px;font-weight:600}'
-      + '.vbox{background:#f8f8f8;border:1px solid #eee;border-radius:6px;padding:10px 16px;text-align:center}'
-      + '.vbox label{font-size:10px;color:#888;text-transform:uppercase;display:block;margin-bottom:4px}'
-      + '.big{font-size:28px;font-weight:900;color:#e63946}'
-      + '.midias{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}'
-      + '.mtag{background:#e63946;color:white;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}'
-      + '.footer{margin-top:40px;border-top:1px solid #eee;padding-top:20px;display:flex;justify-content:space-between;font-size:11px;color:#888}'
-      + '.assin{margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:40px}'
-      + '.assin-campo{border-top:1px solid #222;padding-top:8px;text-align:center;font-size:11px;color:#444}'
-      + '@media print{body{padding:20px}}'
-      + '</style></head><body>'
-      + '<div class="header"><div><div class="logo">OOH<span>Manager</span></div><div style="font-size:11px;color:#666;margin-top:4px">Sistema de Gestao de Midia OOH</div></div>'
-      + '<div class="dtitle"><h1>DOCUMENTO FINANCEIRO</h1><p>Pedido de Insercao Aprovado</p><p class="pinum">' + piNum + '</p><span class="badge">APROVADO</span></div></div>'
-      + '<div class="section"><div class="stitle">Dados do Cliente</div><div class="grid3">'
-      + '<div class="field"><label>Empresa</label><span>' + empresa + '</span></div>'
-      + '<div class="field"><label>CNPJ</label><span>' + (cnpj||'—') + '</span></div>'
-      + '<div class="field"><label>Agencia</label><span>' + (agencia||'—') + '</span></div>'
-      + '<div class="field"><label>Contato</label><span>' + (contato||'—') + '</span></div>'
-      + '<div class="field"><label>Email</label><span>' + (email||'—') + '</span></div>'
-      + '<div class="field"><label>Telefone</label><span>' + (telefone||'—') + '</span></div>'
-      + '</div></div>'
-      + '<div class="section"><div class="stitle">Dados da Campanha</div><div class="grid">'
-      + '<div class="field"><label>Titulo da Campanha</label><span>' + titulo + '</span></div>'
-      + '<div class="field"><label>Proposta de Origem</label><span>' + propNum + '</span></div>'
-      + '<div class="field"><label>Periodo Inicio</label><span>' + periodoInicio + '</span></div>'
-      + '<div class="field"><label>Periodo Fim</label><span>' + periodoFim + '</span></div>'
-      + '</div><div style="margin-top:12px"><label style="font-size:10px;color:#888;text-transform:uppercase">Midias Contratadas</label>'
-      + '<div class="midias">' + midias + '</div></div></div>'
-      + '<div class="section"><div class="stitle">Valores</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
-      + '<div class="vbox"><label>Valor Total</label><div class="big">' + valor + '</div></div>'
-      + '<div class="vbox"><label>Data de Emissao</label><div style="font-size:18px;font-weight:700;color:#222">' + dataEmissao + '</div></div>'
-      + '<div class="vbox"><label>Status</label><div style="font-size:16px;font-weight:700;color:#16a34a">APROVADO</div></div>'
-      + '</div></div>'
-      + obs
-      + '<div class="assin"><div class="assin-campo">Responsavel Comercial / Data</div><div class="assin-campo">Responsavel Financeiro / Data</div></div>'
-      + '<div class="footer"><span>Gerado em ' + dataHora + ' via OOH Manager</span><span>' + piNum + ' | ' + titulo + '</span></div>'
-      + '<script>window.onload=function(){window.print();}<\/script>'
-      + '</body></html>';
-
-    win.document.write(html);
-    win.document.close();
-  }
-
-  async function mudarStatus(id, status) {
-    try {
-      const res = await api.put('/propostas/'+id+'/status', { status });
-      if (res.erro) { alert('Erro: ' + res.erro); return; }
-      load();
-    } catch(e) {
-      alert('Erro de conexao: ' + e.message);
-    }
-  }
-
-  async function aprovar(id) {
-    if (!window.confirm('Aprovar esta proposta? Isso gerara um PI, Producao e Cobranca automaticamente.')) return;
-    try {
-      const res = await api.put('/propostas/'+id+'/status', { status:'Aprovada' });
-      if (res.erro) { alert('Erro: ' + res.erro); return; }
-      load();
-      // Buscar dados do cliente para o PDF
-      const proposta = propostas.find(p=>p.id===id) || {};
-      const clienteData = clientes.find(c=>c.id===proposta.cliente_id) || {};
-      // Gerar PDF automaticamente apos aprovacao
-      setTimeout(()=>{
-        if (window.confirm('Proposta aprovada! Deseja gerar o documento PDF para o financeiro agora?')) {
-          gerarPDFFinanceiro({...proposta, cnpj: proposta.cnpj||'', agencia: proposta.agencia||''}, res.pi, clienteData);
-        }
-      }, 500);
-    } catch(e) {
-      alert('Erro de conexao: ' + e.message);
-    }
-  }
-
-  return (
-    <div>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
-        <h2 style={{fontSize:20,fontWeight:700}}>Propostas Comerciais</h2>
-        <Btn onClick={()=>setShowForm(!showForm)}>+ Nova Proposta</Btn>
-      </div>
-
-      {showForm && (
-        <div style={{...s.card,marginBottom:20}}>
-          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16}}>Nova Proposta</h3>
-          <div style={s.grid2}>
-            <div style={{marginBottom:12}}>
-              <label style={s.label}>Cliente *</label>
-              <select style={s.select} value={form.cliente_id} onChange={e=>setForm(p=>({...p,cliente_id:e.target.value}))}>
-                <option value="">Selecione...</option>
-                {clientes.map(c=><option key={c.id} value={c.id}>{c.empresa}</option>)}
-              </select>
-            </div>
-            <Input label="Titulo da Campanha *" value={form.titulo} onChange={v=>setForm(p=>({...p,titulo:v}))}/>
-            <Input label="Periodo Inicio" value={form.periodo_inicio} onChange={v=>setForm(p=>({...p,periodo_inicio:v}))} type="date"/>
-            <Input label="Periodo Fim" value={form.periodo_fim} onChange={v=>setForm(p=>({...p,periodo_fim:v}))} type="date"/>
-            <Input label="Valor (R$)" value={form.valor} onChange={v=>setForm(p=>({...p,valor:v}))} type="number"/>
-            <Input label="CNPJ do Cliente" value={form.cnpj} onChange={v=>setForm(p=>({...p,cnpj:v}))} placeholder="00.000.000/0001-00"/>
-            <Input label="Agencia" value={form.agencia} onChange={v=>setForm(p=>({...p,agencia:v}))} placeholder="Nome da agencia (opcional)"/>
-          </div>
-          <div style={{marginBottom:12}}>
-            <label style={s.label}>Midias</label>
-            <div style={{display:'flex',gap:8,marginBottom:8}}>
-              <select style={{...s.select,width:'auto'}} value={midiaSel} onChange={e=>setMidiaSel(e.target.value)}>
-                <option value="">Selecione...</option>
-                {MIDIAS.map(m=><option key={m}>{m}</option>)}
-              </select>
-              <Btn variant="secondary" onClick={()=>{ if(midiaSel&&!form.midias.find(m=>m.nome===midiaSel)){ setForm(p=>({...p,midias:[...p.midias,{nome:midiaSel,midia_id:midiaSel,valor:0,quantidade:1}]})); setMidiaSel(''); }}}>+ Add</Btn>
-            </div>
-            <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-              {form.midias.map(m=><span key={m.nome} style={{...s.badge(C.teal),cursor:'pointer'}} onClick={()=>setForm(p=>({...p,midias:p.midias.filter(x=>x.nome!==m.nome)}))}>{m.nome} X</span>)}
-            </div>
-          </div>
-          <div style={{display:'flex',gap:8,marginTop:8}}>
-            <Btn onClick={salvar}>Salvar Proposta</Btn>
-            <Btn variant="ghost" onClick={()=>setShowForm(false)}>Cancelar</Btn>
-          </div>
-        </div>
-      )}
-
-      <div style={s.card}>
-        <table style={s.table}>
-          <thead><tr>{['No','Cliente','Titulo','Periodo','Valor','Status','Acoes'].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead>
-          <tbody>
-            {propostas.map(p=>(
-              <tr key={p.id}>
-                <td style={{...s.td,fontFamily:'monospace',color:C.muted,fontSize:11}}>{p.numero}</td>
-                <td style={s.td}>{p.cliente_nome}</td>
-                <td style={{...s.td,fontWeight:600}}>{p.titulo}</td>
-                <td style={{...s.td,fontSize:12,color:C.muted}}>{p.periodo_inicio ? new Date(p.periodo_inicio).toLocaleDateString('pt-BR') : '—'}</td>
-                <td style={{...s.td,fontWeight:700,color:C.gold}}>{fmtN(p.valor)}</td>
-                <td style={s.td}><Badge status={p.status}/></td>
-                <td style={s.td}>
-                  {p.status==='Rascunho'&&<Btn onClick={()=>mudarStatus(p.id,'Enviada')} style={{fontSize:11,padding:'4px 10px',background:C.warning}}>Enviar</Btn>}
-                  {(p.status==='Enviada'||p.status==='Rascunho')&&<Btn onClick={()=>aprovar(p.id)} style={{fontSize:11,padding:'4px 10px',marginLeft:4}}>OK Aprovar -> PI</Btn>}
-                  {p.status==='Aprovada'&&<span style={{fontSize:11,color:C.success,marginRight:8}}>OK PI gerado</span>}
-                  {p.status==='Aprovada'&&<Btn onClick={()=>gerarPDFFinanceiro(p, null, clientes.find(c=>c.id===p.cliente_id))} style={{fontSize:11,padding:'4px 10px',background:'#6366f1'}}>[PDF]</Btn>}
-                  {p.status==='Enviada'&&<Btn onClick={()=>mudarStatus(p.id,'Reprovada')} style={{fontSize:11,padding:'4px 10px',marginLeft:4,background:C.danger}}>Reprovar</Btn>}
-                </td>
-              </tr>
-            ))}
-            {propostas.length===0&&<tr><td colSpan={7} style={{...s.td,textAlign:'center',color:C.muted,padding:32}}>Nenhuma proposta cadastrada.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// ── PI ───────────────────────────────────────────────────────
 function PI() {
   const api = useApi();
   const [pis, setPIs] = useState([]);
